@@ -25,6 +25,56 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
+        /* Loader Styles */
+        #loader {
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.8s ease, visibility 0.8s ease;
+        }
+        #loader.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+        .loader-ring {
+            width: 80px;
+            height: 80px;
+            border: 4px solid rgba(59, 130, 246, 0.2);
+            border-top: 4px solid #3b82f6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            box-shadow: 0 0 30px rgba(59, 130, 246, 0.4);
+        }
+        .loader-text {
+            margin-top: 24px;
+            font-size: 1.25rem;
+            font-weight: 700;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            color: #3b82f6;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+        .loader-subtext {
+            margin-top: 8px;
+            font-size: 0.75rem;
+            letter-spacing: 0.2em;
+            color: rgba(255, 255, 255, 0.5);
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
         .feature-box { opacity: 0; filter: blur(10px); transform: translateY(40px); }
         #sidebar { transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); transform: translateX(-100%); }
         #sidebar.open { transform: translateX(0); }
@@ -33,9 +83,52 @@
         #script-text { font-family: 'JetBrains Mono', monospace; }
         .custom-scroll::-webkit-scrollbar { height: 4px; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #3b82f6; border-radius: 10px; }
+        
+        /* 3D Banner Effect */
+        .banner-3d-wrap {
+            perspective: 1000px;
+            transform-style: preserve-3d;
+            position: relative;
+        }
+        .banner-3d-wrap::before {
+            content: '';
+            position: absolute;
+            inset: -20px;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.3), rgba(6, 182, 212, 0.3));
+            border-radius: 30px;
+            transform: translateZ(-40px) rotateX(10deg) rotateY(-10deg);
+            filter: blur(30px);
+            opacity: 0.6;
+            z-index: -1;
+            animation: float 6s ease-in-out infinite;
+        }
+        .banner-3d-image {
+            transform-style: preserve-3d;
+            transition: transform 0.15s ease-out;
+            box-shadow: 
+                0 25px 50px -12px rgba(0, 0, 0, 0.5),
+                0 0 0 1px rgba(59, 130, 246, 0.2),
+                inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+            animation: glow 4s ease-in-out infinite alternate;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateZ(-40px) rotateX(10deg) rotateY(-10deg) translateY(0); }
+            50% { transform: translateZ(-40px) rotateX(10deg) rotateY(-10deg) translateY(-10px); }
+        }
+        @keyframes glow {
+            0% { box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 30px rgba(59, 130, 246, 0.3); }
+            100% { box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 50px rgba(6, 182, 212, 0.5); }
+        }
     </style>
 </head>
 <body class="font-sans bg-white dark:bg-gray-900 text-gray-900 dark:text-white transition-colors duration-500 min-h-screen overflow-x-hidden">
+
+    <!-- Loader -->
+    <div id="loader">
+        <div class="loader-ring"></div>
+        <div class="loader-text">Foxname Loading</div>
+        <div class="loader-subtext">Please wait...</div>
+    </div>
 
     <aside id="sidebar" class="fixed top-0 left-0 h-full w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 z-[60] p-6 shadow-2xl flex flex-col">
         <div class="flex justify-between items-center mb-10">
@@ -140,6 +233,13 @@
     </div>
 
     <script>
+        // Loader functionality - hide loader when page is fully loaded
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                document.getElementById('loader').classList.add('hidden');
+            }, 1500);
+        });
+
         const ScrollTrigger = window.ScrollTrigger || gsap.ScrollTrigger;
         gsap.registerPlugin(ScrollTrigger);
 
@@ -208,6 +308,28 @@
         
         // Start typing effect when page loads
         window.addEventListener('load', typeText);
+
+        // 3D Banner Interactive Tilt Effect
+        const bannerWrap = document.querySelector('.banner-3d-wrap');
+        const bannerImage = document.querySelector('.banner-3d-image');
+        
+        if (bannerWrap && bannerImage) {
+            bannerWrap.addEventListener('mousemove', (e) => {
+                const rect = bannerWrap.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+                const rotateX = (y - centerY) / 10;
+                const rotateY = (centerX - x) / 10;
+                
+                bannerImage.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.05)`;
+            });
+            
+            bannerWrap.addEventListener('mouseleave', () => {
+                bannerImage.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale(1)';
+            });
+        }
     </script>
 </body>
 </html>
