@@ -7,7 +7,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500&family=Outfit:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <script>
         tailwind.config = {
@@ -16,20 +17,58 @@
                 extend: {
                     fontFamily: {
                         'mono': ['"JetBrains Mono"', 'monospace'],
-                        'sans': ['Inter', 'sans-serif'],
+                        'display': ['Outfit', 'sans-serif'],
+                    },
+                    colors: {
+                        'neon-blue': '#00f0ff',
+                        'neon-purple': '#b400ff',
+                        'neon-pink': '#ff00aa',
+                        'dark-surface': '#0a0a0f',
+                        'card-bg': 'rgba(255, 255, 255, 0.03)',
                     }
                 }
             }
         }
     </script>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        /* Loader Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: #0a0a0f;
+            overflow-x: hidden;
+        }
+
+        /* Animated Background */
+        .bg-mesh {
+            position: fixed;
+            inset: 0;
+            background: 
+                radial-gradient(ellipse at 20% 20%, rgba(0, 240, 255, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 80%, rgba(180, 0, 255, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 50%, rgba(255, 0, 170, 0.05) 0%, transparent 60%);
+            z-index: -1;
+        }
+        
+        .bg-grid {
+            position: fixed;
+            inset: 0;
+            background-image: 
+                linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+            background-size: 60px 60px;
+            z-index: -1;
+        }
+
+        /* Loader */
         #loader {
             position: fixed;
             inset: 0;
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            background: #0a0a0f;
             z-index: 9999;
             display: flex;
             flex-direction: column;
@@ -43,170 +82,630 @@
             pointer-events: none;
         }
         .loader-ring {
-            width: 80px;
-            height: 80px;
-            border: 4px solid rgba(59, 130, 246, 0.2);
-            border-top: 4px solid #3b82f6;
+            width: 100px;
+            height: 100px;
+            position: relative;
+        }
+        .loader-ring::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border: 3px solid transparent;
+            border-top-color: #00f0ff;
+            border-right-color: #b400ff;
             border-radius: 50%;
             animation: spin 1s linear infinite;
-            box-shadow: 0 0 30px rgba(59, 130, 246, 0.4);
+        }
+        .loader-ring::after {
+            content: '';
+            position: absolute;
+            inset: 8px;
+            border: 3px solid transparent;
+            border-top-color: #ff00aa;
+            border-radius: 50%;
+            animation: spin 1.5s linear infinite reverse;
         }
         .loader-text {
-            margin-top: 24px;
-            font-size: 1.25rem;
+            margin-top: 32px;
+            font-size: 1.5rem;
             font-weight: 700;
-            letter-spacing: 0.3em;
+            letter-spacing: 0.4em;
             text-transform: uppercase;
-            color: #3b82f6;
-            animation: pulse 1.5s ease-in-out infinite;
-        }
-        .loader-subtext {
-            margin-top: 8px;
-            font-size: 0.75rem;
-            letter-spacing: 0.2em;
-            color: rgba(255, 255, 255, 0.5);
+            background: linear-gradient(90deg, #00f0ff, #b400ff, #ff00aa);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: shimmer 2s linear infinite;
         }
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
+        @keyframes shimmer {
+            to { background-position: 200% center; }
         }
-        
-        .feature-box { opacity: 0; filter: blur(10px); transform: translateY(40px); }
-        #sidebar { transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); transform: translateX(-100%); }
-        #sidebar.open { transform: translateX(0); }
-        .page-content { display: none; }
-        .page-content.active { display: block; }
-        #script-text { font-family: 'JetBrains Mono', monospace; }
-        .custom-scroll::-webkit-scrollbar { height: 4px; }
-        .custom-scroll::-webkit-scrollbar-thumb { background: #3b82f6; border-radius: 10px; }
-        
-        /* 3D Banner Effect */
-        .banner-3d-wrap {
-            perspective: 1000px;
-            transform-style: preserve-3d;
+
+        /* Sidebar */
+        #sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            width: 280px;
+            background: rgba(10, 10, 15, 0.95);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+            z-index: 100;
+            padding: 32px 24px;
+            transform: translateX(-100%);
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        #sidebar.open {
+            transform: translateX(0);
+        }
+        .sidebar-logo {
+            font-size: 1.75rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #00f0ff, #b400ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: 0.05em;
+        }
+        .nav-btn {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            width: 100%;
+            padding: 16px 20px;
+            border-radius: 16px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: rgba(255, 255, 255, 0.6);
+            transition: all 0.3s ease;
+            border: 1px solid transparent;
+        }
+        .nav-btn:hover, .nav-btn.active {
+            background: rgba(0, 240, 255, 0.1);
+            color: #00f0ff;
+            border-color: rgba(0, 240, 255, 0.3);
+        }
+        .nav-btn i {
+            font-size: 1.1rem;
+            width: 24px;
+        }
+        .discord-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 50px;
+            height: 50px;
+            border-radius: 14px;
+            background: #5865F2;
+            color: white;
+            font-size: 1.4rem;
+            transition: all 0.3s ease;
+            margin-top: auto;
+        }
+        .discord-btn:hover {
+            background: #4752C4;
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(88, 101, 242, 0.4);
+        }
+
+        /* Navbar */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 72px;
+            background: rgba(10, 10, 15, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            z-index: 90;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 32px;
+        }
+        .menu-btn {
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .menu-btn:hover {
+            background: rgba(0, 240, 255, 0.15);
+            color: #00f0ff;
+        }
+        .nav-logo {
+            font-size: 1.5rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #00f0ff, #b400ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .theme-btn {
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .theme-btn:hover {
+            background: rgba(180, 0, 255, 0.15);
+            color: #b400ff;
+        }
+        .nav-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            border: 2px solid rgba(0, 240, 255, 0.5);
+            object-fit: cover;
+        }
+
+        /* Overlay */
+        #overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+            z-index: 95;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        #overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Page Content */
+        .page-content {
+            display: none;
+            padding-top: 72px;
+            min-height: 100vh;
+        }
+        .page-content.active {
+            display: block;
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: calc(100vh - 72px);
+            display: flex;
+            align-items: center;
+            padding: 60px 32px;
             position: relative;
         }
-        .banner-3d-wrap::before {
+        .hero-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 80px;
+            align-items: center;
+            width: 100%;
+        }
+        .hero-content {
+            position: relative;
+        }
+        .hero-title {
+            font-size: clamp(2.5rem, 6vw, 4.5rem);
+            font-weight: 900;
+            line-height: 1.1;
+            margin-bottom: 16px;
+        }
+        .hero-title .line1 {
+            display: block;
+            background: linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.7) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .hero-title .line2 {
+            display: block;
+            background: linear-gradient(90deg, #00f0ff, #b400ff, #ff00aa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-size: 200% auto;
+            animation: shimmer 3s linear infinite;
+        }
+        .hero-subtitle {
+            font-size: 1rem;
+            font-weight: 500;
+            letter-spacing: 0.5em;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.4);
+            margin-bottom: 40px;
+        }
+        .cta-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            padding: 18px 36px;
+            background: linear-gradient(135deg, #00f0ff, #b400ff);
+            border-radius: 16px;
+            font-weight: 700;
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #0a0a0f;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+        }
+        .cta-btn:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(0, 240, 255, 0.3);
+        }
+        .hero-image-wrap {
+            position: relative;
+        }
+        .hero-image-glow {
+            position: absolute;
+            inset: -40px;
+            background: radial-gradient(circle, rgba(0, 240, 255, 0.3) 0%, transparent 70%);
+            filter: blur(40px);
+            animation: pulse-glow 4s ease-in-out infinite;
+        }
+        .hero-image {
+            position: relative;
+            width: 100%;
+            max-width: 520px;
+            border-radius: 24px;
+            transform: perspective(1000px) rotateY(-5deg);
+            transition: transform 0.3s ease;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5);
+        }
+        .hero-image:hover {
+            transform: perspective(1000px) rotateY(0deg) scale(1.02);
+        }
+        @keyframes pulse-glow {
+            0%, 100% { opacity: 0.5; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.1); }
+        }
+
+        /* Features Section */
+        .features {
+            padding: 120px 32px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .section-title {
+            font-size: clamp(2rem, 4vw, 3rem);
+            font-weight: 900;
+            text-align: center;
+            margin-bottom: 80px;
+            background: linear-gradient(135deg, #fff, rgba(255,255,255,0.6));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 32px;
+        }
+        .feature-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 24px;
+            padding: 40px;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .feature-card::before {
             content: '';
             position: absolute;
-            inset: -20px;
-            background: linear-gradient(135deg, rgba(59, 130, 246, 0.3), rgba(6, 182, 212, 0.3));
-            border-radius: 30px;
-            transform: translateZ(-40px) rotateX(10deg) rotateY(-10deg);
-            filter: blur(30px);
-            opacity: 0.6;
-            z-index: -1;
-            animation: float 6s ease-in-out infinite;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.02) 0%, transparent 100%);
+            opacity: 0;
+            transition: opacity 0.4s ease;
         }
-        .banner-3d-image {
-            transform-style: preserve-3d;
-            transition: transform 0.15s ease-out;
-            box-shadow: 
-                0 25px 50px -12px rgba(0, 0, 0, 0.5),
-                0 0 0 1px rgba(59, 130, 246, 0.2),
-                inset 0 0 0 1px rgba(255, 255, 255, 0.1);
-            animation: glow 4s ease-in-out infinite alternate;
+        .feature-card:hover {
+            transform: translateY(-8px);
+            border-color: rgba(0, 240, 255, 0.3);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.3);
         }
-        @keyframes float {
-            0%, 100% { transform: translateZ(-40px) rotateX(10deg) rotateY(-10deg) translateY(0); }
-            50% { transform: translateZ(-40px) rotateX(10deg) rotateY(-10deg) translateY(-10px); }
+        .feature-card:hover::before {
+            opacity: 1;
         }
-        @keyframes glow {
-            0% { box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 30px rgba(59, 130, 246, 0.3); }
-            100% { box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 50px rgba(6, 182, 212, 0.5); }
+        .feature-icon {
+            width: 64px;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 18px;
+            font-size: 1.5rem;
+            margin-bottom: 24px;
+        }
+        .feature-icon.blue {
+            background: linear-gradient(135deg, rgba(0, 240, 255, 0.2), rgba(0, 240, 255, 0.05));
+            color: #00f0ff;
+        }
+        .feature-icon.green {
+            background: linear-gradient(135deg, rgba(0, 255, 136, 0.2), rgba(0, 255, 136, 0.05));
+            color: #00ff88;
+        }
+        .feature-icon.purple {
+            background: linear-gradient(135deg, rgba(180, 0, 255, 0.2), rgba(180, 0, 255, 0.05));
+            color: #b400ff;
+        }
+        .feature-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+        .feature-card:nth-child(1) .feature-title { color: #00f0ff; }
+        .feature-card:nth-child(2) .feature-title { color: #00ff88; }
+        .feature-card:nth-child(3) .feature-title { color: #b400ff; }
+        .feature-desc {
+            color: rgba(255, 255, 255, 0.5);
+            line-height: 1.7;
+            font-size: 0.95rem;
+        }
+
+        /* Get Script Page */
+        .get-script-page {
+            padding: 120px 32px 60px;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .script-container {
+            max-width: 800px;
+            width: 100%;
+            text-align: center;
+        }
+        .script-title {
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            font-weight: 900;
+            margin-bottom: 12px;
+            background: linear-gradient(135deg, #00f0ff, #b400ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .script-subtitle {
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 1.1rem;
+            margin-bottom: 48px;
+        }
+        .script-box {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            overflow: hidden;
+            position: relative;
+        }
+        .script-box::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(0, 240, 255, 0.05) 0%, transparent 50%);
+        }
+        .script-content {
+            padding: 28px 32px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            position: relative;
+        }
+        .script-text {
+            flex: 1;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            color: #00f0ff;
+            text-align: left;
+            white-space: nowrap;
+            overflow-x: auto;
+            padding: 8px 0;
+        }
+        .copy-btn {
+            width: 56px;
+            height: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #00f0ff, #b400ff);
+            border: none;
+            border-radius: 14px;
+            color: #0a0a0f;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+        }
+        .copy-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 30px rgba(0, 240, 255, 0.4);
+        }
+        .copy-btn.copied {
+            background: linear-gradient(135deg, #00ff88, #00c896);
+        }
+        .copy-status {
+            margin-top: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #00ff88;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.3s ease;
+        }
+        .copy-status.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 968px) {
+            .hero-container {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+            .hero-content {
+                order: 2;
+            }
+            .hero-image-wrap {
+                order: 1;
+                display: flex;
+                justify-content: center;
+            }
+            .hero-image {
+                max-width: 400px;
+            }
+            .hero-subtitle {
+                justify-content: center;
+                display: flex;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .navbar {
+                padding: 0 16px;
+            }
+            .hero {
+                padding: 40px 16px;
+            }
+            .features {
+                padding: 80px 16px;
+            }
+            .feature-card {
+                padding: 28px;
+            }
+        }
+
+        /* Animations */
+        .fade-up {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        .fade-up.visible {
+            opacity: 1;
+            transform: translateY(0);
         }
     </style>
 </head>
-<body class="font-sans bg-white dark:bg-gray-900 text-gray-900 dark:text-white transition-colors duration-500 min-h-screen overflow-x-hidden">
+<body class="bg-[#0a0a0f] text-white">
+    <!-- Background Effects -->
+    <div class="bg-mesh"></div>
+    <div class="bg-grid"></div>
 
     <!-- Loader -->
     <div id="loader">
         <div class="loader-ring"></div>
-        <div class="loader-text">Foxname Loading</div>
-        <div class="loader-subtext">Please wait...</div>
+        <div class="loader-text">Foxname</div>
     </div>
 
-    <aside id="sidebar" class="fixed top-0 left-0 h-full w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 z-[60] p-6 shadow-2xl flex flex-col">
-        <div class="flex justify-between items-center mb-10">
-            <span class="text-2xl font-bold text-light-blue tracking-wider">Foxname</span>
-            <button id="close-sidebar" class="text-xl hover:text-red-400 transition-colors"><i class="fa-solid fa-xmark"></i></button>
+    <!-- Overlay -->
+    <div id="overlay"></div>
+
+    <!-- Sidebar -->
+    <aside id="sidebar">
+        <div class="flex items-center justify-between mb-12">
+            <span class="sidebar-logo">FOXNAME</span>
+            <button id="close-sidebar" class="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-white/10 transition-colors">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
         </div>
 
-        <nav class="space-y-4 flex-1">
-            <button onclick="showPage('main')" class="w-full flex items-center gap-4 p-4 rounded-xl hover:bg-blue-500/10 text-left font-bold transition-all border border-transparent hover:border-blue-400/30 group">
-                <i class="fa-solid fa-house group-hover:scale-110 transition-transform"></i> Main
+        <nav class="space-y-2">
+            <button onclick="showPage('main')" class="nav-btn active" data-page="main">
+                <i class="fa-solid fa-house"></i>
+                <span>Main</span>
             </button>
-            <button onclick="showPage('get-script')" class="w-full flex items-center gap-4 p-4 rounded-xl hover:bg-blue-500/10 text-left font-bold transition-all border border-transparent hover:border-blue-400/30 group">
-                <i class="fa-solid fa-code group-hover:scale-110 transition-transform"></i> Get Script
+            <button onclick="showPage('get-script')" class="nav-btn" data-page="get-script">
+                <i class="fa-solid fa-code"></i>
+                <span>Get Script</span>
             </button>
         </nav>
 
-        <div class="pt-6 border-t border-gray-100 dark:border-gray-700 flex justify-center">
-            <a href="https://discord.gg/pSp8ABXNT5" target="_blank" class="flex items-center justify-center w-14 h-14 rounded-2xl bg-[#5865F2] hover:bg-[#4752C4] text-white shadow-lg transition-all transform hover:-translate-y-1 active:scale-95">
-                <i class="fa-brands fa-discord text-2xl"></i>
-            </a>
-        </div>
+        <a href="https://discord.gg/pSp8ABXNT5" target="_blank" class="discord-btn">
+            <i class="fa-brands fa-discord"></i>
+        </a>
     </aside>
 
-    <div id="overlay" class="fixed inset-0 bg-black/50 z-[55] hidden backdrop-blur-sm"></div>
-
-    <nav class="fixed top-0 w-full flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-800 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md z-50">
-        <div class="flex items-center gap-4">
-            <button id="sidebar-btn" class="text-2xl hover:text-blue-400 active:scale-90 transition-all">
-                <i class="fa-solid fa-bars"></i>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <button id="sidebar-btn" class="menu-btn">
+            <i class="fa-solid fa-bars"></i>
+        </button>
+        <span class="nav-logo">FOXNAME</span>
+        <div class="flex items-center gap-3">
+            <button id="theme-toggle" class="theme-btn">
+                <i id="theme-icon" class="fa-solid fa-moon"></i>
             </button>
-            <span class="text-2xl font-bold text-light-blue tracking-wider">Foxname</span>
-        </div>
-        <div class="flex items-center gap-4">
-            <button id="theme-toggle" class="p-2 rounded-full bg-gray-100 dark:bg-gray-800 transition-all">
-                <i id="theme-icon" class="fa-solid fa-moon text-blue-500 text-xl"></i>
-            </button>
-            <img src="https://raw.githubusercontent.com/maivuhiep178-cyber/foxname-web/refs/heads/main/icon.png" class="w-10 h-10 rounded-full border-2 border-blue-400 object-cover">
+            <img src="https://raw.githubusercontent.com/maivuhiep178-cyber/foxname-web/refs/heads/main/icon.png" class="nav-avatar">
         </div>
     </nav>
 
+    <!-- Main Page -->
     <div id="page-main" class="page-content active">
-        <main class="min-h-screen flex items-center pt-20 px-10 md:px-20">
-            <div class="flex flex-col md:flex-row items-center justify-start gap-12 md:gap-20 w-full">
-                <div class="banner-3d-wrap">
-                    <img src="https://raw.githubusercontent.com/maivuhiep178-cyber/foxname-web/refs/heads/main/banner.png" class="banner-3d-image rounded-2xl shadow-2xl border border-blue-300/30 w-full md:w-[500px] object-cover">
+        <!-- Hero -->
+        <section class="hero">
+            <div class="hero-container">
+                <div class="hero-content">
+                    <h1 class="hero-title">
+                        <span class="line1">THE BEST</span>
+                        <span class="line2">SCRIPT 99 NIGHT</span>
+                    </h1>
+                    <p class="hero-subtitle">Foxname Script</p>
+                    <button onclick="showPage('get-script')" class="cta-btn">
+                        <i class="fa-solid fa-download"></i>
+                        GET SCRIPT NOW
+                    </button>
                 </div>
-                <div class="text-left">
-                    <h1 id="typing-text" class="text-5xl md:text-7xl font-black text-light-blue leading-tight uppercase tracking-tighter"><span class="typing-effect"></span></h1>
-                    <p class="text-base font-semibold text-gray-500 mt-4 mb-10 tracking-[0.4em] uppercase opacity-70">FOXNAME SCRIPT</p>
-                    <button onclick="showPage('get-script')" class="bg-blue-500 hover:bg-blue-600 text-white px-10 py-4 rounded-2xl font-bold transition-all shadow-xl shadow-blue-500/30 uppercase">GET SCRIPT NOW</button>
+                <div class="hero-image-wrap">
+                    <div class="hero-image-glow"></div>
+                    <img src="https://raw.githubusercontent.com/maivuhiep178-cyber/foxname-web/refs/heads/main/banner.png" class="hero-image" alt="Foxname Banner">
                 </div>
             </div>
-        </main>
+        </section>
 
-        <section class="py-32 px-10 md:px-20 max-w-7xl mx-auto">
-            <h2 class="text-4xl font-black text-center text-light-blue uppercase mb-20 tracking-widest">Why Choose Foxname?</h2>
-            <div id="feature-grid" class="grid grid-cols-1 md:grid-cols-3 gap-10">
-
-                <div class="feature-box p-10 rounded-[2.5rem] bg-gray-50/50 dark:bg-gray-800/30 backdrop-blur-xl border border-gray-700/50 hover:border-blue-500/40 transition-all duration-500">
-                    <i class="fa-solid fa-gift text-blue-400 text-3xl mb-6"></i>
-                    <h3 class="text-2xl font-bold mb-4 uppercase text-blue-400">Always Free</h3>
-                    <p class="text-gray-400 text-sm leading-relaxed">
+        <!-- Features -->
+        <section class="features">
+            <h2 class="section-title">WHY CHOOSE FOXNAME?</h2>
+            <div class="features-grid">
+                <div class="feature-card fade-up">
+                    <div class="feature-icon blue">
+                        <i class="fa-solid fa-gift"></i>
+                    </div>
+                    <h3 class="feature-title">Always Free</h3>
+                    <p class="feature-desc">
                         Enjoy high-quality gaming scripts at zero cost forever. Our community-driven project ensures that every premium feature remains accessible to everyone without hidden fees, subscriptions, or annoying paywalls in your experience.
                     </p>
                 </div>
 
-                <div class="feature-box p-10 rounded-[2.5rem] bg-gray-50/50 dark:bg-gray-800/30 backdrop-blur-xl border border-gray-700/50 hover:border-green-500/40 transition-all duration-500">
-                    <i class="fa-solid fa-shield text-green-400 text-3xl mb-6"></i>
-                    <h3 class="text-2xl font-bold mb-4 uppercase text-green-400">Undetected</h3>
-                    <p class="text-gray-400 text-sm leading-relaxed">
+                <div class="feature-card fade-up">
+                    <div class="feature-icon green">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+                    <h3 class="feature-title">Undetected</h3>
+                    <p class="feature-desc">
                         Stay secure with our advanced anti-cheat bypass technology. We provide constant updates to match the latest game versions, ensuring your account remains safe while you dominate the competition with total confidence.
                     </p>
                 </div>
 
-                <div class="feature-box p-10 rounded-[2.5rem] bg-gray-50/50 dark:bg-gray-800/30 backdrop-blur-xl border border-gray-700/50 hover:border-purple-500/40 transition-all duration-500">
-                    <i class="fa-solid fa-headset text-purple-400 text-3xl mb-6"></i>
-                    <h3 class="text-2xl font-bold mb-4 uppercase text-purple-400">Support</h3>
-                    <p class="text-gray-400 text-sm leading-relaxed">
+                <div class="feature-card fade-up">
+                    <div class="feature-icon purple">
+                        <i class="fa-solid fa-headset"></i>
+                    </div>
+                    <h3 class="feature-title">Support</h3>
+                    <p class="feature-desc">
                         Get instant help from our professional staff through Discord. We offer 24/7 assistance for setup, troubleshooting, and custom requests to make sure your script runs perfectly on any device without any issues.
                     </p>
                 </div>
@@ -214,28 +713,29 @@
         </section>
     </div>
 
-    <div id="page-get-script" class="page-content pt-40 px-6 md:px-20 min-h-screen">
-        <div class="max-w-4xl mx-auto text-center">
-            <h2 class="text-4xl md:text-6xl font-black text-light-blue uppercase mb-6 tracking-tight">Copy Script</h2>
-            <div class="relative group mt-12">
-                <div class="absolute -inset-1 bg-gradient-to-r from-blue-600 to-cyan-500 rounded-2xl blur opacity-20 group-hover:opacity-40 transition duration-500"></div>
-                <div class="relative flex items-stretch bg-gray-900/90 backdrop-blur-md rounded-2xl overflow-hidden border border-gray-700/50">
-                    <div class="flex-1 p-6 text-left overflow-x-auto whitespace-nowrap bg-black/20 custom-scroll">
-                        <code id="script-text" class="text-blue-400 text-sm md:text-base select-all">Nothing :0</code>
+    <!-- Get Script Page -->
+    <div id="page-get-script" class="page-content">
+        <div class="get-script-page">
+            <div class="script-container">
+                <h2 class="script-title">COPY SCRIPT</h2>
+                <p class="script-subtitle">Click the button below to copy your script</p>
+                
+                <div class="script-box">
+                    <div class="script-content">
+                        <code id="script-text" class="script-text">Nothing :0</code>
+                        <button onclick="copyScript()" class="copy-btn" id="copy-btn">
+                            <i id="copy-icon" class="fa-regular fa-copy"></i>
+                        </button>
                     </div>
-                    <button onclick="copyScript()" class="bg-blue-500 hover:bg-blue-600 text-white px-8 flex items-center justify-center transition-all active:scale-95 group/btn">
-                        <i id="copy-icon" class="fa-solid fa-copy text-xl group-hover/btn:scale-110 transition-transform"></i>
-                    </button>
                 </div>
+                
+                <p class="copy-status" id="copy-status">✓ Copied to clipboard!</p>
             </div>
-            <p id="copy-status" class="mt-6 text-blue-400 font-bold opacity-0 transition-all transform translate-y-2 italic text-sm font-mono">✓ Copied to clipboard!</p>
         </div>
     </div>
 
     <script>
-        // Loader functionality - hide loader when page is fully loaded
-        // SAFETY: Always hide loader after maximum 5 seconds as fallback
-        const MAX_LOADER_TIME = 5000;
+        const MAX_LOADER_TIME = 4000;
         let loaderHidden = false;
         
         function hideLoader() {
@@ -245,20 +745,13 @@
             }
         }
         
-        // Fallback: Hide loader after maximum time regardless of other events
         setTimeout(hideLoader, MAX_LOADER_TIME);
         
-        // Try to hide loader when page is fully loaded
         window.addEventListener('load', function() {
-            setTimeout(hideLoader, 500);
-        });
-        
-        // Also hide loader if there's any error (but give it a moment first)
-        window.addEventListener('error', function() {
-            setTimeout(hideLoader, 1000);
+            setTimeout(hideLoader, 800);
         });
 
-        // Safely initialize GSAP with error handling
+        
         let gsapReady = false;
         try {
             const ScrollTrigger = window.ScrollTrigger || gsap.ScrollTrigger;
@@ -267,14 +760,18 @@
                 gsapReady = true;
             }
         } catch (e) {
-            console.warn('GSAP ScrollTrigger failed to load, using fallback animations');
+            console.warn('GSAP not available, using fallback');
         }
 
         const sidebar = document.getElementById('sidebar');
         const sidebarBtn = document.getElementById('sidebar-btn');
         const overlay = document.getElementById('overlay');
 
-        const toggleSidebar = () => { sidebar.classList.toggle('open'); overlay.classList.toggle('hidden'); };
+        function toggleSidebar() {
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('show');
+        }
+
         sidebarBtn.addEventListener('click', toggleSidebar);
         overlay.addEventListener('click', toggleSidebar);
         document.getElementById('close-sidebar').addEventListener('click', toggleSidebar);
@@ -282,108 +779,117 @@
         function showPage(pageId) {
             document.querySelectorAll('.page-content').forEach(p => p.classList.remove('active'));
             document.getElementById('page-' + pageId).classList.add('active');
+            
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.page === pageId) {
+                    btn.classList.add('active');
+                }
+            });
+            
             if (sidebar.classList.contains('open')) toggleSidebar();
             window.scrollTo(0, 0);
+            
             if (pageId === 'main') {
-                if (gsapReady) {
-                    gsap.to(".feature-box", { opacity: 1, y: 0, filter: "blur(0px)", duration: 1, stagger: 0.2 });
-                } else {
-                    // Fallback: Show feature boxes without GSAP animation
-                    document.querySelectorAll('.feature-box').forEach(el => {
-                        el.style.opacity = '1';
-                        el.style.filter = 'blur(0px)';
-                        el.style.transform = 'translateY(0)';
-                    });
-                }
+                initAnimations();
             }
         }
 
         function copyScript() {
             const text = document.getElementById('script-text').innerText;
             navigator.clipboard.writeText(text);
+            
+            const btn = document.getElementById('copy-btn');
             const icon = document.getElementById('copy-icon');
             const status = document.getElementById('copy-status');
-            icon.classList.replace('fa-copy', 'fa-check');
-            status.style.opacity = '1';
-            status.style.transform = 'translateY(0)';
+            
+            btn.classList.add('copied');
+            icon.classList.remove('fa-copy');
+            icon.classList.add('fa-check');
+            status.classList.add('show');
+            
             setTimeout(() => {
-                icon.classList.replace('fa-check', 'fa-copy');
-                status.style.opacity = '0';
-                status.style.transform = 'translateY(8px)';
-            }, 2000);
+                btn.classList.remove('copied');
+                icon.classList.remove('fa-check');
+                icon.classList.add('fa-copy');
+                status.classList.remove('show');
+            }, 2500);
         }
 
         const themeToggle = document.getElementById('theme-toggle');
         themeToggle.addEventListener('click', () => {
-            document.documentElement.classList.toggle('dark');
             const isDark = document.documentElement.classList.contains('dark');
-            document.getElementById('theme-icon').classList.replace(isDark ? 'fa-moon' : 'fa-sun', isDark ? 'fa-sun' : 'fa-moon');
+            document.documentElement.classList.toggle('dark');
+            const icon = document.getElementById('theme-icon');
+            if (isDark) {
+                icon.classList.remove('fa-moon');
+                icon.classList.add('fa-sun');
+            } else {
+                icon.classList.remove('fa-sun');
+                icon.classList.add('fa-moon');
+            }
         });
 
-        // GSAP scrollTrigger animation with fallback
-        if (gsapReady) {
-            gsap.to(".feature-box", {
-                scrollTrigger: { trigger: "#feature-grid", start: "top 85%" },
-                opacity: 1, y: 0, filter: "blur(0px)", duration: 1.2, stagger: 0.25, ease: "power4.out"
-            });
-        } else {
-            // Fallback: Use Intersection Observer for animation
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.style.opacity = '1';
-                        entry.target.style.filter = 'blur(0px)';
-                        entry.target.style.transform = 'translateY(0)';
-                    }
+        function initAnimations() {
+            if (gsapReady) {
+                gsap.from('.hero-title .line1', {
+                    y: 50,
+                    opacity: 0,
+                    duration: 1,
+                    ease: 'power3.out'
                 });
-            }, { threshold: 0.15 });
-            
-            document.querySelectorAll('.feature-box').forEach(el => {
-                observer.observe(el);
-            });
-        }
-
-        // Typing effect for "THE BEST SCRIPT 99 NIGHT"
-        const textToType = "THE BEST SCRIPT \n99 NIGHT";
-        const typingElement = document.querySelector('.typing-effect');
-        let charIndex = 0;
-        
-        function typeText() {
-            if (charIndex < textToType.length) {
-                if (textToType.charAt(charIndex) === '\n') {
-                    typingElement.innerHTML += '<br>';
-                } else {
-                    typingElement.innerHTML += textToType.charAt(charIndex);
-                }
-                charIndex++;
-                setTimeout(typeText, 100);
+                gsap.from('.hero-title .line2', {
+                    y: 50,
+                    opacity: 0,
+                    duration: 1,
+                    delay: 0.2,
+                    ease: 'power3.out'
+                });
+                gsap.from('.hero-subtitle', {
+                    y: 30,
+                    opacity: 0,
+                    duration: 1,
+                    delay: 0.4,
+                    ease: 'power3.out'
+                });
+                gsap.from('.cta-btn', {
+                    y: 30,
+                    opacity: 0,
+                    duration: 1,
+                    delay: 0.6,
+                    ease: 'power3.out'
+                });
+                gsap.from('.hero-image', {
+                    x: 50,
+                    opacity: 0,
+                    duration: 1.2,
+                    delay: 0.3,
+                    ease: 'power3.out'
+                });
+                
+                gsap.utils.toArray('.feature-card').forEach((card, i) => {
+                    gsap.from(card, {
+                        y: 50,
+                        opacity: 0,
+                        duration: 0.8,
+                        delay: 0.5 + (i * 0.15),
+                        ease: 'power3.out',
+                        scrollTrigger: {
+                            trigger: card,
+                            start: 'top 85%'
+                        }
+                    });
+                });
+            } else {
+                document.querySelectorAll('.fade-up').forEach(el => {
+                    el.classList.add('visible');
+                });
             }
         }
-        
-        // Start typing effect when page loads
-        window.addEventListener('load', typeText);
 
-        // 3D Banner Interactive Tilt Effect
-        const bannerWrap = document.querySelector('.banner-3d-wrap');
-        const bannerImage = document.querySelector('.banner-3d-image');
-        
-        if (bannerWrap && bannerImage) {
-            bannerWrap.addEventListener('mousemove', (e) => {
-                const rect = bannerWrap.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const y = e.clientY - rect.top;
-                const centerX = rect.width / 2;
-                const centerY = rect.height / 2;
-                const rotateX = (y - centerY) / 10;
-                const rotateY = (centerX - x) / 10;
-                
-                bannerImage.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.05)`;
-            });
-            
-            bannerWrap.addEventListener('mouseleave', () => {
-                bannerImage.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale(1)';
-            });
-        }
+        window.addEventListener('load', () => {
+            initAnimations();
+        });
     </script>
 </body>
 </html>
